@@ -31,6 +31,7 @@ type Logger struct {
 	debug     bool
 	timestamp bool
 	quiet     bool
+	logFile   *os.File
 	buf       colorful.ColorBuffer
 }
 
@@ -116,6 +117,22 @@ func (l *Logger) WithoutColor() *Logger {
 	return l
 }
 
+// WithLogFile turn on log saving to log file
+func (l *Logger) WithLogFile(path string) *Logger {
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		l.Error("could not open log file", path)
+	}
+	runtime.SetFinalizer(l, func(l *Logger) {
+		l.Info("closing log file")
+		l.logFile.Close()
+	})
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.logFile = f
+	return l
+}
+
 // WithDebug turn on debugging output on the log to reveal debug and trace level
 func (l *Logger) WithDebug() *Logger {
 	l.mu.Lock()
@@ -178,8 +195,22 @@ func (l *Logger) IsQuiet() bool {
 	return l.quiet
 }
 
-// Output print the actual value
 func (l *Logger) Output(depth int, prefix Prefix, data string) error {
+	if l.logFile != nil {
+		loggerCopy := *l
+		// must use a new mutex to avoid dead locks or concurrent writes to l.mu
+		loggerCopy.mu = sync.RWMutex{}
+		loggerCopy.color = false
+		loggerCopy.out = loggerCopy.logFile
+		if err := loggerCopy.output(depth, prefix, data); err != nil {
+			return err
+		}
+	}
+	return l.output(depth, prefix, data)
+}
+
+// Output print the actual value
+func (l *Logger) output(depth int, prefix Prefix, data string) error {
 	// Check if quiet is requested, and try to return no error and be quiet
 	if l.IsQuiet() {
 		return nil
