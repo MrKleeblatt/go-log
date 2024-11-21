@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/withmandala/go-log/colorful"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // FdWriter interface extends existing io.Writer with file descriptor function
@@ -94,7 +94,7 @@ var (
 // automatically detect terminal coloring support
 func New(out FdWriter) *Logger {
 	return &Logger{
-		color:     terminal.IsTerminal(int(out.Fd())),
+		color:     term.IsTerminal(int(out.Fd())),
 		out:       out,
 		timestamp: true,
 	}
