@@ -109,6 +109,12 @@ func (l *Logger) WithColor() *Logger {
 	return l
 }
 
+func (l *Logger) IsColored() bool {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	return l.color
+}
+
 // WithoutColor explicitly turn off colorful features on the log
 func (l *Logger) WithoutColor() *Logger {
 	l.mu.Lock()
