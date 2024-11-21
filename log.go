@@ -127,7 +127,7 @@ func (l *Logger) WithoutColor() *Logger {
 func (l *Logger) WithLogFile(path string) *Logger {
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		l.Error("could not open log file", path)
+		l.Error("could not open log file", path, err)
 	}
 	runtime.SetFinalizer(l, func(l *Logger) {
 		l.Info("closing log file")
