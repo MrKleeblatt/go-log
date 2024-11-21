@@ -79,6 +79,14 @@ logger.WithoutDebug()
 logger.Debug("Test debug output") // This message will not be printed
 ```
 
+## Pipe output to log file
+
+You can simultaneously write to stdout and to a log file. Colors will only appear on the console, not in the log file.
+
+```go
+logger := log.New(os.Stdout).WithLogFile("test.log")
+```
+
 ## Be Quiet
 
 If somehow the log is annoying to you, just shush it by calling `(Logger).Quiet()` and **ALL** log output will be
